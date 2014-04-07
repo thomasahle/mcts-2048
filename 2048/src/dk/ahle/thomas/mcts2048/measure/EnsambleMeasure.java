@@ -1,8 +1,8 @@
-package dk.ahle.thomas.ai2048.measure;
+package dk.ahle.thomas.mcts2048.measure;
 
 import java.security.InvalidParameterException;
 
-import dk.ahle.thomas.ai2048.Board;
+import dk.ahle.thomas.mcts2048.Board;
 
 public class EnsambleMeasure implements Measure {
 	private Measure[] measures;

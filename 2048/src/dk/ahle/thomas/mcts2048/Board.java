@@ -1,4 +1,4 @@
-package dk.ahle.thomas.ai2048;
+package dk.ahle.thomas.mcts2048;
 
 import java.util.ArrayList;
 import java.util.Arrays;

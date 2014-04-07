@@ -1,7 +1,7 @@
-package dk.ahle.thomas.ai2048.strategy;
+package dk.ahle.thomas.mcts2048.strategy;
 
-import dk.ahle.thomas.ai2048.Board;
-import dk.ahle.thomas.ai2048.measure.Measure;
+import dk.ahle.thomas.mcts2048.Board;
+import dk.ahle.thomas.mcts2048.measure.Measure;
 
 public class GreedyStrategy implements Strategy {
 

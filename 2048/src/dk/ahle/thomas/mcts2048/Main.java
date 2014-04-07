@@ -1,8 +1,8 @@
-package dk.ahle.thomas.ai2048;
+package dk.ahle.thomas.mcts2048;
 
-import dk.ahle.thomas.ai2048.measure.SumMeasure;
-import dk.ahle.thomas.ai2048.strategy.MarkovStrategy2;
-import dk.ahle.thomas.ai2048.strategy.Strategy;
+import dk.ahle.thomas.mcts2048.measure.SumMeasure;
+import dk.ahle.thomas.mcts2048.strategy.MarkovStrategy2;
+import dk.ahle.thomas.mcts2048.strategy.Strategy;
 
 
 public class Main {

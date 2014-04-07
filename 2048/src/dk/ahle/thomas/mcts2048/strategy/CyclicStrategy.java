@@ -1,6 +1,6 @@
-package dk.ahle.thomas.ai2048.strategy;
+package dk.ahle.thomas.mcts2048.strategy;
 
-import dk.ahle.thomas.ai2048.Board;
+import dk.ahle.thomas.mcts2048.Board;
 
 public class CyclicStrategy implements Strategy {
 	private int[] cycle;

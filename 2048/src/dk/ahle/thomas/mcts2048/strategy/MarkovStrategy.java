@@ -1,12 +1,12 @@
-package dk.ahle.thomas.ai2048.strategy;
+package dk.ahle.thomas.mcts2048.strategy;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-import dk.ahle.thomas.ai2048.Board;
-import dk.ahle.thomas.ai2048.measure.SumMeasure;
+import dk.ahle.thomas.mcts2048.Board;
+import dk.ahle.thomas.mcts2048.measure.SumMeasure;
 
 public class MarkovStrategy implements Strategy {
 
