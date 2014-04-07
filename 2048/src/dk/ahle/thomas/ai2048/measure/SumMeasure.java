@@ -1,0 +1,15 @@
+package dk.ahle.thomas.ai2048.measure;
+
+import dk.ahle.thomas.ai2048.Board;
+
+public class SumMeasure implements Measure {
+	@Override
+	public double score(Board board) {
+		int score = 0;
+		for (int s : board.grid()) {
+			if (s > 0)
+				score += 1 << s;
+		}
+		return score;
+	}
+}
