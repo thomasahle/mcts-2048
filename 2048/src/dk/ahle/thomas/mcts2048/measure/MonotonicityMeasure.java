@@ -2,11 +2,11 @@ package dk.ahle.thomas.mcts2048.measure;
 
 import dk.ahle.thomas.mcts2048.Board;
 
-public class SmoothMeasure implements Measure {
+public class MonotonicityMeasure implements Measure {
 	@Override
 	public double score(Board board) {
 		int res = 0;
-		for (int m = Board.UP; m <= Board.RIGHT; m++) {
+		for (int m = 0; m <= 1; m++) {
 			int dir = Board.dirs[m];
 			for (int p : Board.orders[m]) {
 				int a = (board.grid()[p] == 0 ? 0 : 1 << board.grid()[p]);

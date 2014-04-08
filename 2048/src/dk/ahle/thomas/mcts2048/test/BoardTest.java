@@ -1,10 +1,12 @@
 package dk.ahle.thomas.mcts2048.test;
 
+import static dk.ahle.thomas.mcts2048.test.TestUtils.parse;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
 import dk.ahle.thomas.mcts2048.Board;
+
 
 public class BoardTest {
 
@@ -32,22 +34,5 @@ public class BoardTest {
 		assertEquals(
 			 	parse("....", "....", "1...", "2..."),
 			 	parse("1...", "....", "2...", "....").move(Board.DOWN));
-	}
-
-	private Board parse(String... ss) {
-		String r = "";
-		for (String s : ss)
-			r += s;
-		return parse(r);
-	}
-
-	private Board parse(String s) {
-		Board board = new Board();
-		for (int i = 0; i < 16; i++) {
-			char c = s.charAt(i);
-			if (c != '.')
-				board.grid()[Board.all[i]] = c - '0';
-		}
-		return board;
 	}
 }

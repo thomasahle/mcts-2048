@@ -20,4 +20,14 @@ public class TestUtils {
 		}
 		return board;
 	}
+	
+	public static long parseb(String... ss) {
+		Board board = parse(ss);
+		long res = 0;
+		for (int i = 15; i >= 0; i--) {
+			res <<= 4;
+			res |= board.grid()[Board.all[i]];
+		}
+		return res;
+	}
 }

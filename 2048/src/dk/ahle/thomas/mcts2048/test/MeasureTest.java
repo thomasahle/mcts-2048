@@ -13,18 +13,10 @@ import dk.ahle.thomas.mcts2048.measure.SumMeasure;
 public class MeasureTest {
 	@Test
 	public void testSmoothPow() {
-		Measure m = new SmoothMeasure("pow");
+		Measure m = new SmoothMeasure();
 		assertEquals(4, m.score(parse("1...", "....", "....", "....")), 1e-6);
 		assertEquals(30+14, m.score(parse("1234", "....", "....", "....")), 1e-6);
 		assertEquals(4*14, m.score(parse("1234", "1234", "1234", "1234")), 1e-6);
-	}
-	
-	@Test
-	public void testSmoothId() {
-		Measure m = new SmoothMeasure("id");
-		assertEquals(2, m.score(parse("1...", "....", "....", "....")), 1e-6);
-		assertEquals(10+3, m.score(parse("1234", "....", "....", "....")), 1e-6);
-		assertEquals(4*3, m.score(parse("1234", "1234", "1234", "1234")), 1e-6);
 	}
 	
 	@Test

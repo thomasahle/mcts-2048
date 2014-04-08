@@ -6,32 +6,21 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 import dk.ahle.thomas.mcts2048.Board;
-import dk.ahle.thomas.mcts2048.measure.EnsambleMeasure;
-import dk.ahle.thomas.mcts2048.measure.FreesMeasure;
 import dk.ahle.thomas.mcts2048.measure.Measure;
-import dk.ahle.thomas.mcts2048.measure.SmoothMeasure;
-import dk.ahle.thomas.mcts2048.measure.SumMeasure;
 
 public class UCTStrategy implements Strategy {
 
-	static Measure rolloutMeasure = new SumMeasure();
-	
-	static Measure rolloutMeasure2 = new EnsambleMeasure()
-			.addMeasure(1, new SumMeasure())
-			.addMeasure(0, new SmoothMeasure("pow"));
-	static Strategy rolloutStrategy2 = new CyclicStrategy(Board.DOWN,
-			Board.LEFT, Board.DOWN, Board.RIGHT);
-	
-	static Strategy rolloutStrategy = new GreedyStrategy(new EnsambleMeasure()
-			.addMeasure(-1, new SmoothMeasure("pow"))
-			.addMeasure(1, new FreesMeasure()));
+	static Measure rolloutMeasure;
+	static Strategy rolloutStrategy;
 	
 	private int expands;
 	private boolean verbose;
 
-	public UCTStrategy(int expands, boolean verbose) {
+	public UCTStrategy(int expands, boolean verbose, Measure rolloutMeasure, Strategy rolloutStrategy) {
 		this.expands = expands;
 		this.verbose = verbose;
+		UCTStrategy.rolloutMeasure = rolloutMeasure;
+		UCTStrategy.rolloutStrategy = rolloutStrategy;
 	}
 
 	@Override
