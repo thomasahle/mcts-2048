@@ -22,7 +22,7 @@ public class RandomStrategy implements Strategy {
 		while (!board.isStuck()) {
 			board = board.move(pickMove());
 			if (board.changed)
-				board.spawn();
+				board.unsafe_spawn();
 		}
 		return board;
 	}

@@ -34,7 +34,7 @@ public class Board {
 	public boolean changed = false;
 
 	private Random rand = ThreadLocalRandom.current();
-	public void spawn() {
+	public void unsafe_spawn() {
 		while (true) {
 			int p = rand.nextInt(32);
 			if (grid()[p] == 0) {
@@ -42,23 +42,17 @@ public class Board {
 				break;
 			}
 		}
+		// FIXME: Hangs if no spawn is available
 	}
 	
-	private int pickRandomly() {
+	public int pickRandomly() {
 		return rand.nextInt(10) == 0 ? 2 : 1;
 	}
 	
-	public List<Board> allSpawns() {
-		List<Board> res = new ArrayList<Board>();
-		for (int p : all) {
-			if (grid()[p] == 0) {
-				Board copy = copy();
-				// FIXME: This doesn't generate all spawns...
-				copy.grid()[p] = pickRandomly();
-				res.add(copy);
-			}
-		}
-		return res;
+	public Board spawn() {
+		Board board1 = copy();
+		board1.unsafe_spawn();
+		return board1;
 	}
 	
 	public Board move(int move) {

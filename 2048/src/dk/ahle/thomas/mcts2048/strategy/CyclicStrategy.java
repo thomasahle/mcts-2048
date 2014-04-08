@@ -18,7 +18,7 @@ public class CyclicStrategy implements Strategy {
 					: Board.moves[pos % Board.moves.length];
 			board = board.move(move);
 			if (board.changed) {
-				board.spawn();
+				board.unsafe_spawn();
 				lst = pos;
 			}
 		}

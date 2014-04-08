@@ -11,9 +11,11 @@ import dk.ahle.thomas.mcts2048.measure.SumMeasure;
 public class MarkovStrategy implements Strategy {
 
 	private int expands;
+	private boolean verbose;
 
-	public MarkovStrategy(int expands) {
+	public MarkovStrategy(int expands, boolean verbose) {
 		this.expands = expands;
+		this.verbose = verbose;
 	}
 
 	@Override
@@ -24,15 +26,18 @@ public class MarkovStrategy implements Strategy {
 			for (int i = 0; i < expands; i++) {
 				node.expand();
 			}
-			for (TreeNode child : node.children) {
-				System.out.println(child.totValue+"/"+child.nVisits);
+			if (verbose) {
+				for (TreeNode child : node.children) {
+					System.out.println(child.totValue+"/"+child.nVisits);
+				}
 			}
 			node = node.selectBest();
 			node = node.selectRandomly();
 			node.expand();
 					
-			node.board.print();
-			System.out.println();
+			if (verbose) {
+				node.board.print();
+			}
 		}
 		return node.board;
 	}
@@ -74,15 +79,17 @@ public class MarkovStrategy implements Strategy {
 		@Override
 		public void expandLeaf() {
 			children = new ArrayList<>();
-			for (Board board1 : board.allSpawns()) {
-				children.add(new ChoiceNode(board1));
+			for (int p : Board.all) {
+				if (board.grid()[p] == 0) {
+					Board board1 = board.copy();
+					board1.grid()[p] = board.pickRandomly();
+					children.add(new ChoiceNode(board1));
+				}
 			}
 		}
 
 		public double rollOut() {
-			Board copy = board.copy();
-			copy.spawn();
-			return new SumMeasure().score(rolloutStrat.play(copy));
+			return new SumMeasure().score(rolloutStrat.play(board.spawn()));
 		}
 		
 		@Override

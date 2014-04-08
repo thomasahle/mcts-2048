@@ -16,7 +16,7 @@ public class SmoothStrategy implements Strategy {
 			if (board1 == null)
 				break;
 			board = board1;
-			board.spawn();
+			board.unsafe_spawn();
 //			board.print();
 		}
 		return board;

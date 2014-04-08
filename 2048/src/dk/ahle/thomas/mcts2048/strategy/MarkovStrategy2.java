@@ -12,48 +12,58 @@ import dk.ahle.thomas.mcts2048.measure.SumMeasure;
 public class MarkovStrategy2 implements Strategy {
 
 	static Measure rolloutMeasure = new SumMeasure();
+//	static Measure rolloutMeasure = new EnsambleMeasure()
+//			.addMeasure(2, new SumMeasure())
+//			.addMeasure(-1, new SmoothMeasure("pow"));
 	static Strategy rolloutStrategy = new CyclicStrategy(Board.DOWN,
 			Board.LEFT, Board.DOWN, Board.RIGHT);
 
 	private int expands;
+	private boolean verbose;
 
-	public MarkovStrategy2(int expands) {
+	public MarkovStrategy2(int expands, boolean verbose) {
 		this.expands = expands;
+		this.verbose = verbose;
 	}
 
 	@Override
 	public Board play(Board board) {
-		TreeNode node = new ChoiceLeaf(board);
-		while (true) {
+		Node node = new ChoiceLeaf(board);
+		int k = 0;
+		while (!node.board().isStuck()) {
 			for (int i = 0; i < expands; i++) {
 				node = node.expand();
 			}
-			for (TreeNode child : ((ChoiceNode)node).children) {
-				System.out.println(child.value()+" / "+child.visits());
+			if (verbose) {
+				for (Node child : ((ChoiceNode)node).children) {
+					System.out.println((child.value()/child.visits())+" / "+child.visits());
+				}
 			}
 			
 			// Play the best move
 			node = node.select(false);
+//			if (verbose) {
+//				System.out.println(k++ +" "+node.value()/(node.visits()+1));
+//			}
 //			node.board().print();
 			// Play a random move
 			node = node.select(false);
-
-			node.board().print();
-			if (node.board().isStuck()) {
-				break;
+			
+			if (verbose) {
+				node.board().print();
 			}
 		}
 		return node.board();
 	}
 }
 
-abstract class TreeNode {
+abstract class Node {
 	/**
 	 * Expands some path.
 	 * 
 	 * @return The expanded node
 	 */
-	abstract TreeNode expand();
+	abstract Node expand();
 
 	/**
 	 * Select a child for expanding or moving.
@@ -61,25 +71,25 @@ abstract class TreeNode {
 	 * @param explore Whether an exploration bonus should be included.
 	 * @return The most interesting child.
 	 */
-	abstract TreeNode select(boolean explore);
+	abstract Node select(boolean explore);
 
 	int visits = 0;
 	double value = 0;
 	Board board;
 
-	TreeNode(Board board) {
+	Node(Board board) {
 		this.board = board;
 	}
 
 	/**
-	 * @return The number of times the node has been expanded.
+	 * @return The number of calls to expand.
 	 */
 	int visits() {
 		return visits;
 	}
 
 	/**
-	 * @return The current score estimation.
+	 * @return The reward that has been generated yet by visiting this node.
 	 */
 	double value() {
 		return value;
@@ -93,193 +103,166 @@ abstract class TreeNode {
 	}
 }
 
-class ChoiceNode extends TreeNode {
-	List<TreeNode> children;
+class ChoiceNode extends Node {
+	List<Node> children;
 	private Random rand = ThreadLocalRandom.current();
+	private final static double C = 1;
+	private double leafValue;
 
-	public ChoiceNode(Board board, List<TreeNode> children) {
+	public ChoiceNode(Board board, double leafValue, List<Node> children) {
 		super(board);
 		this.children = children;
-		updateStats();
+		assert !children.isEmpty();
+		
+		value = leafValue;
+		for (Node child : children) {
+			value += child.value();
+		}
+		visits = 1 + children.size();
+		
+		this.leafValue = leafValue;
 	}
 
 	@Override
-	public TreeNode expand() {
-		TreeNode node = select(true);
-		TreeNode node1 = node.expand();
+	public Node expand() {
+		Node node = select(true);
+		double oldValue = node.value();
+		
+		Node node1 = node.expand();
 		if (node != node1) {
 			children.remove(node);
 			children.add(node1);
 		}
-
-		updateStats();
+		
+		visits += 1;
+		value += node1.value() - oldValue;
 
 		return this;
 	}
-
-	private void updateStats() {
-		visits++;
-		value = 0;
-		for (TreeNode child : children) {
-			value = Math.max(value, child.value());
-		}
-		if (value == 0)
-			throw new Error("How can it be?");
-	}
 	
 	@Override
-	public TreeNode select(boolean explore) {
-		TreeNode selected = null;
-		double bestValue = 0;
-		for (TreeNode c : children) {
-			double uctValue = c.value();
+	public Node select(boolean explore) {
+		Node selected = null;
+		double bestValue = -Double.MAX_VALUE;
+		for (Node c : children) {
+			double uctValue = c.value()/(c.visits()+1);
 			if (explore) {
-//				uctValue = 0;
-				uctValue /= c.visits() + 1;
-				uctValue += Math.sqrt(Math.log(visits() + 1) / (c.visits() + 1));
+				
+				uctValue += C * leafValue * Math.sqrt(Math.log(visits() + 1)/(c.visits() + 1));
+				uctValue += rand.nextDouble()*1e-6;
+//				System.err.println(C * Math.sqrt(Math.log(visits() + 1)/(c.visits() + 1)));
 			}
-			if (uctValue + rand.nextDouble()*1e-6 > bestValue) {
-//				System.out.println(c.value()+" "+c.visits()+" "+Math.sqrt(Math.log(visits() + 1) / (c.visits() + 1)));
+			if (uctValue >= bestValue) {
 				selected = c;
 				bestValue = uctValue;
 			}
 		}
 		assert selected != null;
-		if (selected == null)
-			throw new Error("What?");
 		return selected;
 	}
 }
 
-class ExitNode extends TreeNode {
-	public ExitNode(Board board, double value) {
+class ExitNode extends Node {
+	private double leafValue;
+	public ExitNode(Board board, double leafValue) {
 		super(board);
-		this.value = value;
-		this.visits = Integer.MAX_VALUE/2;
+		visits = 1;
+		value = leafValue;
+		this.leafValue = leafValue;
 	}
 
 	@Override
-	public TreeNode expand() {
-//		Vil blive kaldt fordi SpawnNode.select ikke kigger pa visits.
-//		throw new UnsupportedOperationException();
+	public Node expand() {
+		visits += 1;
+		value += leafValue;
 		return this;
 	}
 
 	@Override
-	public TreeNode select(boolean explore) {
+	public Node select(boolean explore) {
 		throw new UnsupportedOperationException();
-//		return this;
+//		Alternatively, return null to signal no children
 	}
 }
 
-class ChoiceLeaf extends TreeNode {
+class ChoiceLeaf extends Node {
 	public ChoiceLeaf(Board board) {
 		super(board);
-		value = MarkovStrategy2.rolloutMeasure
-				.score(MarkovStrategy2.rolloutStrategy.play(board));
+		visits = 1;
+		value = MarkovStrategy2.rolloutMeasure.score(
+				MarkovStrategy2.rolloutStrategy.play(board));
 	}
 
 	@Override
-	public TreeNode expand() {
-		List<TreeNode> children = new ArrayList<>();
+	public Node expand() {
+		List<Node> children = new ArrayList<>();
 		for (int move : Board.moves) {
 			Board board1 = board().move(move);
 			if (board1.changed) {
-				children.add(new SpawnLeaf(board1));
+				children.add(new SpawnNode(board1));
 			}
 		}
 		if (children.isEmpty()) {
 			return new ExitNode(board(), value());
 		}
-		return new ChoiceNode(board(), children);
+		return new ChoiceNode(board(), value(), children);
 	}
 
 	@Override
-	public TreeNode select(boolean explore) {
+	public Node select(boolean explore) {
 		throw new UnsupportedOperationException();
-//		return this;
+		// Perhaps just return a random action?
 	}
 }
 
-class SpawnLeaf extends TreeNode {
-	public SpawnLeaf(Board board) {
-		super(board);
+class SpawnNode extends Node {
+	private List<Node> children = new ArrayList<>();
 
-		Board board1 = board.copy();
-		board1.spawn();
+	/**
+	 * True iff the last call to select spawned a new child
+	 */
+	private boolean wasNew;
+
+	public SpawnNode(Board board) {
+		super(board);
+		visits = 1;
+		// We have to spawn before we play-out, as the Strategies expect to start with a choice
 		value = MarkovStrategy2.rolloutMeasure.score(
-				MarkovStrategy2.rolloutStrategy.play(board1));
+				MarkovStrategy2.rolloutStrategy.play(board.spawn()));
 	}
 
 	@Override
-	public TreeNode expand() {
-		List<TreeNode> children = new ArrayList<>();
-		for (Board board1 : board().allSpawns()) {
-			children.add(new ChoiceLeaf(board1));
+	public Node expand() {
+		visits += 1;
+		Node child = select(true);
+		if (wasNew) {
+			value += child.value();
+		} else {
+			double oldValue = child.value();
+			Node child1 = child.expand();
+			if (child != child1) {
+				children.remove(child);
+				children.add(child1);
+			}
+			value += child1.value() - oldValue;
 		}
-		// This shouldnt happen
-		assert !children.isEmpty();
-		if (children.isEmpty()) {
-			return new ExitNode(board(), value());
-		}
-		return new SpawnNode(board(), children);
-	}
-
-	@Override
-	public TreeNode select(boolean explore) {
-		return this;
-	}
-}
-
-class SpawnNode extends TreeNode {
-	private List<TreeNode> children;
-	private Random rand = ThreadLocalRandom.current();
-
-	public SpawnNode(Board board, List<TreeNode> children) {
-		super(board);
-		this.children = children;
-		updateStats();
-	}
-
-	@Override
-	public TreeNode expand() {
-		TreeNode node = select(true);
-		TreeNode node1 = node.expand();
-		if (node != node1) {
-			children.remove(node);
-			children.add(node1);
-		}
-
-		updateStats();
-
 		return this;
 	}
 	
-	private void updateStats() {
-		visits++;
-		value = 0;
-		for (TreeNode child : children) {
-			value += child.value();
-		}
-		value /= children.size();
-	}
-
 	@Override
-	public TreeNode select(boolean explore) {
-		TreeNode selected = null;
-		double bestValue = 0;
-		for (TreeNode c : children) {
-			double uctValue = 0;
-			if (explore) {
-//				uctValue = c.value() / (c.visits() + 1);
-//				uctValue += Math.sqrt(Math.log(visits() + 1) / (c.visits() + 1));
-			}
-			if (uctValue + rand.nextDouble() * 1e-6 >= bestValue) {
-				selected = c;
-				bestValue = uctValue;
+	Node select(boolean explore) {
+		// TODO: What if there are no possible spawns?
+		Board board1 = board.spawn();
+		for (Node child : children) {
+			if (child.board().equals(board)) {
+				wasNew = false;
+				return child;
 			}
 		}
-		assert selected != null;
-		return selected;
+		// If we didn't already have a node representing the board, expand a bit
+		Node child = new ChoiceLeaf(board1);
+		children.add(child);
+		wasNew = true;
+		return child;
 	}
 }
