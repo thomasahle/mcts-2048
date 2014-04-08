@@ -17,9 +17,9 @@ public class BoardTest {
 	
 	@Test
 	public void testMoves() {
-//		assertEquals(
-//				parse("1111", "....", "....", "...."),
-//				parse("....", "....", "....", "1111").move(Board.UP));
+		assertEquals(
+				parse("1111", "....", "....", "...."),
+				parse("....", "....", "....", "1111").move(Board.UP));
 		assertEquals(
 				parse("....", "....", "....", "..22"),
 				parse("....", "....", "....", "1111").move(Board.RIGHT));

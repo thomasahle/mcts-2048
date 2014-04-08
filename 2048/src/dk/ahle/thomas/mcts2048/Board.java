@@ -1,8 +1,6 @@
 package dk.ahle.thomas.mcts2048;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -55,34 +53,40 @@ public class Board {
 		return board1;
 	}
 	
-	public Board move(int move) {
-		Board board = copy();
-		boolean merged[] = new boolean[36];
+	boolean merged[] = new boolean[36];
+	public void unsafe_move(int move) {
+		Arrays.fill(merged, false);
+		changed = false;
 		int dir = dirs[move];
 		for (int src : orders[move]) {
-			if (board.grid()[src] == 0)
+			if (grid[src] == 0)
 				continue;
 			int dst = src + dir;
 			// Move unto free squares
-			while (board.grid()[dst] == 0) {
+			while (grid[dst] == 0) {
 				dst += dir;
 			}
 			// Merge
-			if (board.grid()[dst] == board.grid()[src] && !merged[dst]) {
-				board.grid()[dst] += 1;
+			if (grid[dst] == grid[src] && !merged[dst]) {
+				grid[dst] += 1;
 				merged[dst] = true;
 				dst += dir;
 			}
 			// Normal termination
 			else {
-				board.grid()[dst - dir] = board.grid()[src];
+				grid[dst - dir] = grid[src];
 			}
 			// Move happened
 			if (dst != src + dir) {
-				board.grid()[src] = 0;
-				board.changed = true;
+				grid[src] = 0;
+				changed = true;
 			}
 		}
+	}
+	
+	public Board move(int move) {
+		Board board = copy();
+		board.unsafe_move(move);
 		return board;
 	}
 	

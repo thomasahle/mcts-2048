@@ -10,13 +10,13 @@ public class CyclicStrategy implements Strategy {
 	}
 
 	@Override
-	public Board play(Board board) {
+	public Board play(Board board_) {
+		Board board = board_.copy();
 		int lst = 0;
 		for (int pos = 0; pos - lst <= cycle.length + Board.moves.length; pos++) {
-			int move = pos - lst <= cycle.length
+			board.unsafe_move(pos - lst <= cycle.length
 					? cycle[pos % cycle.length]
-					: Board.moves[pos % Board.moves.length];
-			board = board.move(move);
+					: Board.moves[pos % Board.moves.length]);
 			if (board.changed) {
 				board.unsafe_spawn();
 				lst = pos;

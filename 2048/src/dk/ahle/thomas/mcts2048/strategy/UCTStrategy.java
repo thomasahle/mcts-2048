@@ -6,22 +6,30 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 import dk.ahle.thomas.mcts2048.Board;
+import dk.ahle.thomas.mcts2048.measure.EnsambleMeasure;
+import dk.ahle.thomas.mcts2048.measure.FreesMeasure;
 import dk.ahle.thomas.mcts2048.measure.Measure;
+import dk.ahle.thomas.mcts2048.measure.SmoothMeasure;
 import dk.ahle.thomas.mcts2048.measure.SumMeasure;
 
-public class MarkovStrategy2 implements Strategy {
+public class UCTStrategy implements Strategy {
 
 	static Measure rolloutMeasure = new SumMeasure();
-//	static Measure rolloutMeasure = new EnsambleMeasure()
-//			.addMeasure(2, new SumMeasure())
-//			.addMeasure(-1, new SmoothMeasure("pow"));
-	static Strategy rolloutStrategy = new CyclicStrategy(Board.DOWN,
+	
+	static Measure rolloutMeasure2 = new EnsambleMeasure()
+			.addMeasure(1, new SumMeasure())
+			.addMeasure(0, new SmoothMeasure("pow"));
+	static Strategy rolloutStrategy2 = new CyclicStrategy(Board.DOWN,
 			Board.LEFT, Board.DOWN, Board.RIGHT);
-
+	
+	static Strategy rolloutStrategy = new GreedyStrategy(new EnsambleMeasure()
+			.addMeasure(-1, new SmoothMeasure("pow"))
+			.addMeasure(1, new FreesMeasure()));
+	
 	private int expands;
 	private boolean verbose;
 
-	public MarkovStrategy2(int expands, boolean verbose) {
+	public UCTStrategy(int expands, boolean verbose) {
 		this.expands = expands;
 		this.verbose = verbose;
 	}
@@ -29,7 +37,7 @@ public class MarkovStrategy2 implements Strategy {
 	@Override
 	public Board play(Board board) {
 		Node node = new ChoiceLeaf(board);
-		int k = 0;
+//		int k = 0;
 		while (!node.board().isStuck()) {
 			for (int i = 0; i < expands; i++) {
 				node = node.expand();
@@ -189,8 +197,8 @@ class ChoiceLeaf extends Node {
 	public ChoiceLeaf(Board board) {
 		super(board);
 		visits = 1;
-		value = MarkovStrategy2.rolloutMeasure.score(
-				MarkovStrategy2.rolloutStrategy.play(board));
+		value = UCTStrategy.rolloutMeasure.score(
+				UCTStrategy.rolloutStrategy.play(board));
 	}
 
 	@Override
@@ -227,8 +235,8 @@ class SpawnNode extends Node {
 		super(board);
 		visits = 1;
 		// We have to spawn before we play-out, as the Strategies expect to start with a choice
-		value = MarkovStrategy2.rolloutMeasure.score(
-				MarkovStrategy2.rolloutStrategy.play(board.spawn()));
+		value = UCTStrategy.rolloutMeasure.score(
+				UCTStrategy.rolloutStrategy.play(board.spawn()));
 	}
 
 	@Override
