@@ -59,3 +59,5 @@ Inspiration
 ===========
 
 The idea of using bitboards for faster move generation is inspired by https://github.com/nneonneo/2048-ai which uses min-max search.
+
+For some state of the art papers, using n-tuple networks, see https://link.springer.com/chapter/10.1007/978-3-319-50935-8_8 and https://arxiv.org/pdf/1604.05085.pdf
