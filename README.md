@@ -55,3 +55,7 @@ It is also possible to use the CyclicStrategy for rollouts ini UCT:
             new SumMeasure(),
             new CyclicStrategy(Board.DOWN, Board.LEFT, Board.DOWN, Board.RIGHT), 1);
 
+Inspiration
+===========
+
+The idea of using bitboards for faster move generation is inspired by https://github.com/nneonneo/2048-ai which uses min-max search.
