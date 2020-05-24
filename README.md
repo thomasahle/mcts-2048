@@ -4,11 +4,14 @@ mcts-2048
 A Monte Carlo Tree Search AI for the game 2048.
 Using bitboards and customizable strategies.
 
-Run:
+Compile:
 
     git clone git@github.com:thomasahle/mcts-2048.git
     cd mcts-2048/2048
     javac -cp src/ isrc/dk/ahle/thomas/mcts2048/Main.java
+    
+Run:
+
     java -cp src dk.ahle.thomas.mcts2048.Main
 
     ...
